@@ -1,6 +1,5 @@
 package com.techlib.fileops.controllers;
 
-import com.techlib.fileops.entities.ProtectedFile;
 import com.techlib.fileops.services.PdfUnlockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +23,14 @@ public class PdfFileController {
     private PdfUnlockService service;
 
     @PostMapping(value = "/unlock", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<Resource> unlockPDF(ProtectedFile pdfFile) throws IOException {
-        log.info("unlocking pdf");
-        final var byteArrayOp = service.unlockPdf(pdfFile.getFile().getInputStream(), pdfFile.getPassword());
+    public ResponseEntity<Resource> unlockPDF(@RequestPart MultipartFile file, @RequestPart String password) throws IOException {
+        log.info("unlocking pdf file {}", file.getOriginalFilename());
+        final var byteArrayOp = service.unlockPdf(file.getInputStream(), password);
         InputStreamResource inputStreamResource = new InputStreamResource(new ByteArrayInputStream(byteArrayOp.toByteArray()));
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "unlocked_file.pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getOriginalFilename() +"_unlocked_file.pdf")
                 .body(inputStreamResource);
     }
 }
